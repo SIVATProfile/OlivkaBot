@@ -1,0 +1,10 @@
+test*
+test/*
+
+.idea
+.idea/*
+
+.env
+
+venv
+venv/*
