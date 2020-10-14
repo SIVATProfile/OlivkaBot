@@ -8,3 +8,9 @@ test/*
 
 venv
 venv/*
+
+__pycache__
+__pycache__/*
+
+olivkabot/__pycache__
+olivkabot/__pycache__/*
