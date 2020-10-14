@@ -1,0 +1,16 @@
+test*
+test/*
+
+.idea
+.idea/*
+
+.env
+
+venv
+venv/*
+
+__pycache__
+__pycache__/*
+
+olivkabot/__pycache__
+olivkabot/__pycache__/*
