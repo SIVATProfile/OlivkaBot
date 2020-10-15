@@ -1,1 +1,1 @@
-web: python worker.py
+web: python olivkabot.py
