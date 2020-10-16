@@ -18,28 +18,34 @@ def logger_setup(log_level: str = "INFO") -> logging.Logger:
     return _logger
 
 
-logger = logger_setup(log_level="DEBUG")
+logger = logger_setup(log_level="INFO")
 
 
 def get_weekday_menu(weekday: str):
     weekday_list = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+    menu_list = list()
     try:
         weekday = weekday_list.index(weekday)
     except ValueError:
-        logger.error(f"Weekday name '{weekday}' is wrong!")
+        logger.error(f"Weekday name '{weekday}' is wrong")
         raise
     response = requests.get('https://m.olivkafood.ru/produkciya/bizneslanch/')
     status = response.status_code
     if status != 200:
-        logger.error(f"Request to 'https://m.olivkafood.ru/produkciya/bizneslanch/' failed!!!")
+        logger.error(f"Request to 'https://m.olivkafood.ru/produkciya/bizneslanch/' failed")
+        return menu_list
     soup = bs4.BeautifulSoup(response.text, features='html.parser')
     menu_html = soup.body.find('div',
                                attrs={'class': f'menu-item mix menu-category-filter c{weekday + 1}'}).find_all(
         'div', attrs={'class': 'extended-item'})
     del menu_html[0]
-    menu_list = list()
+    if len(menu_html) == 0:
+        logger.error(f"Can't find any dish in today's menu")
+        return menu_list
     for position in menu_html:
         position_name = position.find('div', attrs={'class': 'item-name'})
+        if not position_name:
+            continue
         position_portion = position.find('div', attrs={'class': 'item-portion'})
         if position_portion:
             menu_list.append(f"{position_name.text.capitalize()} ({position_portion.text})")
@@ -50,7 +56,7 @@ def get_weekday_menu(weekday: str):
 
 def get_menu(weekday: str):
     menu_list = get_weekday_menu(weekday=weekday)
-    menu_text = 'Ланч в кафе "Оливка" на сегодня:'
+    menu_text = 'Состав ланча в кафе "Оливка" на сегодня:'
     for item in menu_list:
         menu_text = f"{menu_text}\n - {item}"
     menu_text = f"{menu_text}\nПриятного аппетита!"
@@ -75,14 +81,14 @@ def callback_notify(context: telegram.ext.CallbackContext):
 def start_command(update: telegram.Update, context: telegram.ext.CallbackContext):
     jobs = context.job_queue.jobs()
     if len(jobs) > 0:
-        logger.error(f"JOB ALREADY STARTED!!!")
+        logger.warning(f"Job already started, deleting old job")
         job = context.job_queue.jobs()[0]
         job.schedule_removal()
     notify_time = datetime.time(hour=3, minute=0, second=0)
     context.job_queue.run_daily(callback=callback_notify, days=tuple(range(5)), context=update.message.chat_id,
                                 time=notify_time)
     context.bot.send_message(chat_id=update.message.chat_id, text='Для данного канала добавлена рассылка о составе '
-                                                                  'ланча в кафе "Оливка. Рассылка проводится по будням'
+                                                                  'ланча в кафе "Оливка". Рассылка проводится по будням'
                                                                   ' в 10:00')
 
 
