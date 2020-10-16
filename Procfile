@@ -1,1 +1,1 @@
-worker: python olivkabot.py
+
